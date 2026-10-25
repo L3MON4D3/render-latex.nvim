@@ -491,7 +491,7 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 [[package]]
 name = "ratex-font"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "phf",
  "ratex-types",
@@ -500,7 +500,7 @@ dependencies = [
 [[package]]
 name = "ratex-font-loader"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "ab_glyph",
  "ratex-font",
@@ -512,7 +512,7 @@ dependencies = [
 [[package]]
 name = "ratex-katex-fonts"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "rust-embed",
 ]
@@ -520,7 +520,7 @@ dependencies = [
 [[package]]
 name = "ratex-layout"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "ratex-font",
  "ratex-parser",
@@ -531,7 +531,7 @@ dependencies = [
 [[package]]
 name = "ratex-lexer"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "ratex-types",
  "serde",
@@ -541,7 +541,7 @@ dependencies = [
 [[package]]
 name = "ratex-parser"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "fancy-regex",
  "ratex-font",
@@ -558,7 +558,7 @@ dependencies = [
 [[package]]
 name = "ratex-render"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "ab_glyph",
  "png",
@@ -577,7 +577,7 @@ dependencies = [
 [[package]]
 name = "ratex-types"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "serde",
 ]
@@ -585,7 +585,7 @@ dependencies = [
 [[package]]
 name = "ratex-unicode-font"
 version = "0.1.15"
-source = "git+https://github.com/erweixin/RaTeX?rev=7d9f9a39218914bead8ffdf39b79028a01d12c22#7d9f9a39218914bead8ffdf39b79028a01d12c22"
+source = "git+https://github.com/L3MON4D3/RaTeX?rev=b620b713d18d32328ca44c72b1210b465e13bc00#b620b713d18d32328ca44c72b1210b465e13bc00"
 dependencies = [
  "fontdb",
  "system-fonts",

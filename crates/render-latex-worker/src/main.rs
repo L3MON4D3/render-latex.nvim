@@ -1,3 +1,5 @@
+mod pixel_sizing;
+use pixel_sizing::PixelSizingOptions;
 use std::collections::HashMap;
 use std::fs;
 use std::io::{self, BufRead, Read, Write};
@@ -41,6 +43,8 @@ struct ResponseValue {
     width_px: u32,
     height_px: u32,
     diagnostics: Option<String>,
+    #[serde(default)]
+    sizing: Option<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -61,6 +65,8 @@ struct RenderParams {
     padding: Option<f32>,
     scale: Option<f32>,
     theme_fingerprint: Option<String>,
+    #[serde(default)]
+    pixel_sizing: Option<PixelSizingOptions>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -90,7 +96,7 @@ struct Worker {
 const MAX_MEMORY_CACHE_ENTRIES: usize = 256;
 const MAX_DISK_CACHE_ENTRIES: usize = 2048;
 const DISK_PRUNE_INTERVAL: u64 = 32;
-const RENDER_CACHE_VERSION: &str = "ratex-7d9f9a3-cache2";
+const RENDER_CACHE_VERSION: &str = "ratex-7d9f9a3-pixel-sizing-experiment-v3";
 const MAX_CACHED_PNG_BYTES: u64 = 128 * 1024 * 1024;
 
 fn default_true() -> bool {
@@ -209,6 +215,7 @@ impl Worker {
             padding: Some(4.0),
             scale: Some(1.0),
             theme_fingerprint: Some("warmup".to_string()),
+            pixel_sizing: None,
         };
         let _ = render_formula(&params)?;
         Ok(())
@@ -225,7 +232,7 @@ impl Worker {
             return Ok(cached);
         }
 
-        let png = render_formula(&params)?;
+        let (png, sizing) = render_formula_measured(&params)?;
 
         let png_path = self.cache_dir.join(format!("{}.png", cache_key));
         let metadata_path = self.cache_dir.join(format!("{}.json", cache_key));
@@ -238,6 +245,7 @@ impl Worker {
             width_px,
             height_px,
             diagnostics: None,
+            sizing,
         };
 
         let entry = DiskCacheEntry {
@@ -264,6 +272,7 @@ impl Worker {
                 width_px: 0,
                 height_px: 0,
                 diagnostics: Some("invalidated cache entry".to_string()),
+                sizing: None,
             });
         }
 
@@ -274,6 +283,7 @@ impl Worker {
             width_px: 0,
             height_px: 0,
             diagnostics: Some("cleared memory cache".to_string()),
+            sizing: None,
         })
     }
 
@@ -341,11 +351,28 @@ fn build_cache_key(params: &RenderParams) -> Result<String> {
     let mut hasher = Sha256::new();
     hasher.update(env!("CARGO_PKG_VERSION").as_bytes());
     hasher.update(RENDER_CACHE_VERSION.as_bytes());
+    // Experimental font overrides must not reuse measurements/raster data from
+    // a different face. Runtime fontconfig points at an immutable Nix font set.
+    for name in ["RATEX_UNICODE_FONT", "FONTCONFIG_FILE", "LANG", "LC_ALL"] {
+        hasher.update(name.as_bytes());
+        hasher.update([0]);
+        if let Ok(value) = std::env::var(name) {
+            hasher.update(value.as_bytes());
+            if let Some(stamp) = png_file_stamp(&value) {
+                hasher.update(format!("{stamp:?}").as_bytes());
+            }
+        }
+        hasher.update([0]);
+    }
     hasher.update(json);
     Ok(hex::encode(hasher.finalize()))
 }
 
 fn render_formula(params: &RenderParams) -> Result<Vec<u8>> {
+    Ok(render_formula_measured(params)?.0)
+}
+
+fn render_formula_measured(params: &RenderParams) -> Result<(Vec<u8>, Option<Value>)> {
     let foreground = parse_color(params.foreground_color.as_deref().unwrap_or("#ffffff"))?;
     let background = parse_color(params.background.as_deref().unwrap_or("transparent"))?;
     let ast = parse(&params.formula).map_err(|err| anyhow!(err.to_string()))?;
@@ -360,18 +387,28 @@ fn render_formula(params: &RenderParams) -> Result<Vec<u8>> {
     };
     let layout_box = layout(&ast, &options);
     validate_layout(&layout_box).map_err(|err| anyhow!(err))?;
-    let display_list = to_display_list(&layout_box);
-    render_to_png(
-        &display_list,
-        &RenderOptions {
-            font_size: params.font_size.unwrap_or(34.0),
-            padding: params.padding.unwrap_or(10.0),
-            background_color: background,
-            font_dir: String::new(),
-            device_pixel_ratio: params.scale.unwrap_or(1.5),
-        },
-    )
-    .map_err(|err| anyhow!(err))
+    let mut display_list = to_display_list(&layout_box);
+    let mut render_options = RenderOptions {
+        font_size: params.font_size.unwrap_or(34.0),
+        padding: params.padding.unwrap_or(10.0),
+        background_color: background,
+        font_dir: String::new(),
+        device_pixel_ratio: params.scale.unwrap_or(1.5),
+    };
+    let sizing = params
+        .pixel_sizing
+        .as_ref()
+        .map(|policy| {
+            pixel_sizing::select(
+                &mut display_list,
+                &mut render_options,
+                policy,
+                params.font_size.unwrap_or(0.01),
+            )
+        })
+        .transpose()?;
+    let png = render_to_png(&display_list, &render_options).map_err(|err| anyhow!(err))?;
+    Ok((png, sizing))
 }
 
 fn parse_color(value: &str) -> Result<Color> {
@@ -426,6 +463,7 @@ fn handle_request(worker: &mut Worker, request: Request) -> Response {
                 width_px: 0,
                 height_px: 0,
                 diagnostics: Some("pong".to_string()),
+                sizing: None,
             })),
             error: None,
         },
@@ -497,6 +535,7 @@ fn handle_request(worker: &mut Worker, request: Request) -> Response {
                 width_px: 0,
                 height_px: 0,
                 diagnostics: Some("shutting down".to_string()),
+                sizing: None,
             })),
             error: None,
         },
@@ -543,6 +582,7 @@ mod tests {
             padding: Some(2.0),
             scale: Some(1.0),
             theme_fingerprint: None,
+            pixel_sizing: None,
         }
     }
 
